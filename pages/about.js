@@ -1,9 +1,8 @@
-
-import Link from 'next/link';
-
 import Layout from "../components/Layout";
 
 import fetch from 'isomorphic-unfetch';
+
+import Error from './_error';
 
 import { Component } from "react";
 
@@ -11,10 +10,19 @@ export default class About extends Component{
 
     static async getInitialProps(){
 
-        const res = await fetch('https://api.github.com/users/omelab');
-        const data = await res.json();
+        let data;
+        let statusCode;
+        
+        try{
+            const res = await fetch('https://api.github.com/users/omelab');
+            statusCode = res.status > 200 ? res.status : false;
+            data = await res.json();
+        } catch (err) {
+            data = [];
+            statusCode = 500
+        }  
 
-        return { user:data }
+        return { user:data, statusCode}
     }
 
     //Client Side Rendering
@@ -40,7 +48,12 @@ export default class About extends Component{
 
 
     render(){
-        const { user } = this.props;
+        const { user, statusCode } = this.props;
+
+        if(statusCode){
+            return <Error title={statusCode} />
+        }
+        
         return(
         <Layout>
             {/* {JSON.stringify(this.state.user)} */}
